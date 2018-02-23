@@ -1,5 +1,7 @@
 FROM jetty:9-alpine
 
+USER root
+
 # Adds yarn. Worked before but was in testing. Now in community.Add main to ensure
 # it keeps working
 RUN echo -e 'http://dl-cdn.alpinelinux.org/alpine/edge/main' >> /etc/apk/repositories
