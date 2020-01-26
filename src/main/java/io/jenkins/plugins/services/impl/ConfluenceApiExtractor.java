@@ -9,6 +9,8 @@ import org.apache.http.Header;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import static io.jenkins.plugins.utils.StreamUtils.asStream;
+
 public class ConfluenceApiExtractor implements WikiExtractor {
   private static final String WIKI_REST_API_TITLE = "https://wiki.jenkins.io/rest/api/content?expand=body.view&title=%s";
   private static final Pattern WIKI_URL_REGEXP_TITLE = Pattern
@@ -19,7 +21,15 @@ public class ConfluenceApiExtractor implements WikiExtractor {
     try {
       JSONArray json = new JSONObject(jsonStr).getJSONArray("results");
       if (json.length() > 0) {
-        String html = json.getJSONObject(0).getJSONObject("body").getJSONObject("view").getString("value");
+        JSONObject matchingWikiPage = asStream(json.iterator())
+          // only match the url specified in the pom
+          // not other localised versions
+          .filter(obj -> url.contains(((JSONObject) obj).getJSONObject("_links").getString("webui")))
+          .map(obj -> ((JSONObject) obj))
+          .findAny()
+          .orElse((JSONObject) json.get(0));
+
+        String html = matchingWikiPage.getJSONObject("body").getJSONObject("view").getString("value");
         return ConfluenceDirectExtractor.cleanWikiContent(wrapInElement(html), wikiService);
       }
       return HttpClientWikiService.getNoDocumentationFound();
