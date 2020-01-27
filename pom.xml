@@ -172,6 +172,16 @@
       <version>2.2.0</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.asciidoctor</groupId>
+      <artifactId>asciidoctorj</artifactId>
+      <version>2.2.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.atlassian.commonmark</groupId>
+      <artifactId>commonmark</artifactId>
+      <version>0.14.0</version>
+   </dependency>
   </dependencies>
 
   <repositories>
