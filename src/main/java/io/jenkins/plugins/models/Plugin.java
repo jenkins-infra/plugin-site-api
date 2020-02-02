@@ -101,6 +101,9 @@ public class Plugin {
   @JsonDeserialize(using = LocalDateTimeDeserializer.class)
   private LocalDateTime firstRelease;
 
+  @JsonProperty("issueTracker")
+  private IssueTracker issueTracker;
+
   public Plugin() {
   }
 
@@ -108,7 +111,7 @@ public class Plugin {
                 String excerpt, String gav, Set<String> labels, String name, LocalDateTime previousTimestamp,
                 String previousVersion, LocalDateTime releaseTimestamp, String requiredCore, Scm scm, String sha1,
                 Stats stats, String title, String url, String version, List<SecurityWarning> securityWarnings, Wiki wiki,
-                LocalDateTime firstRelease) {
+                LocalDateTime firstRelease, IssueTracker issueTracker) {
     this.buildDate = buildDate;
     this.categories = categories;
     this.dependencies = dependencies;
@@ -130,6 +133,7 @@ public class Plugin {
     this.securityWarnings = securityWarnings;
     this.wiki = wiki;
     this.firstRelease = firstRelease;
+    this.issueTracker = issueTracker;
   }
 
   public LocalDate getBuildDate() {
@@ -302,5 +306,13 @@ public class Plugin {
 
   public void setFirstRelease(LocalDateTime firstRelease) {
     this.firstRelease = firstRelease;
+  }
+
+  public IssueTracker getIssueTracker() {
+    return issueTracker;
+  }
+
+  public void setIssueTracker(IssueTracker issueTracker) {
+    this.issueTracker = issueTracker;
   }
 }
