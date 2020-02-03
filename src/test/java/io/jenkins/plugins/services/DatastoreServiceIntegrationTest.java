@@ -56,6 +56,7 @@ public class DatastoreServiceIntegrationTest {
     Assert.assertNotNull("Stats are null", plugin.getStats());
     Assert.assertNotNull("Scm is null", plugin.getScm());
     Assert.assertTrue("Scm link is blank", StringUtils.isNotBlank(plugin.getScm().getLink()));
+    Assert.assertEquals("Issue tracker is jenkins jira", "Jenkins JIRA", plugin.getIssueTracker().getName());
   }
 
   @Test
