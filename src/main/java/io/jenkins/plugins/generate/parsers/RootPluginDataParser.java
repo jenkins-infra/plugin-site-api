@@ -1,6 +1,7 @@
 package io.jenkins.plugins.generate.parsers;
 
 import io.jenkins.plugins.generate.PluginDataParser;
+import io.jenkins.plugins.models.IssueTracker;
 import io.jenkins.plugins.models.Plugin;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
@@ -27,7 +28,11 @@ public class RootPluginDataParser implements PluginDataParser {
     plugin.setSha1(pluginJson.optString("sha1", null));
     plugin.setTitle(pluginJson.optString("title", null));
     plugin.setUrl(pluginJson.optString("url", null));
-    plugin.setVersion(pluginJson.optString("version", null));
+    JSONObject issueTracker = (JSONObject) pluginJson.opt("issueTracker");
+    if (issueTracker != null) {
+      plugin.setIssueTracker(new IssueTracker(issueTracker.getString("name"), issueTracker.getString("url")));
+      plugin.setVersion(pluginJson.optString("version", null));
+    }
     if (StringUtils.isNotBlank(pluginJson.optString("buildDate", null))) {
       final LocalDate buildDate = LocalDate.parse(pluginJson.getString("buildDate"), BUILD_DATE_FORMATTER);
       plugin.setBuildDate(buildDate);
