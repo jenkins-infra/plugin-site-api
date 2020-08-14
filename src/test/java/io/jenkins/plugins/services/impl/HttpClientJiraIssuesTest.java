@@ -64,4 +64,10 @@ public class HttpClientJiraIssuesTest {
     assertEquals(0, issues.issues.size());
   }
 
+  @Test
+  public void testCapitalComponentName() throws IOException {
+    String componentName = this.httpClientJiraIssues.getJiraComponentName("MixedCasePlugin");
+
+    assertEquals("mixedcaseplugin-plugin", componentName);
+  }
 }
