@@ -6,8 +6,9 @@ import io.jenkins.plugins.models.JiraIssues;
 import io.jenkins.plugins.models.MissingJiraComponentException;
 import io.jenkins.plugins.services.ConfigurationService;
 import io.sentry.Sentry;
-import org.apache.http.Header;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -15,9 +16,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
-import java.util.Collections;
-import java.util.List;
 
 public class HttpClientJiraIssues extends HttpClient {
   private Logger logger = LoggerFactory.getLogger(HttpClientJiraIssues.class);
@@ -28,10 +29,13 @@ public class HttpClientJiraIssues extends HttpClient {
   }
 
   @Override
-  public String getHttpContent(String url, List<Header> headers) {
-    url = this.configurationService.getJiraURL() + url;
-    logger.debug("getHttpContent - " + url);
-    return super.getHttpContent(url, headers);
+  public String getHttpContent(final HttpRequestBase httpRequest) {
+    try {
+      httpRequest.setURI(new URI(this.configurationService.getJiraURL() + httpRequest.getURI().getRawPath()));
+    } catch (URISyntaxException e) {
+      logger.error("Unable to set url", e);
+    }
+    return super.getHttpContent(httpRequest);
   }
 
   @Override
@@ -51,7 +55,7 @@ public class HttpClientJiraIssues extends HttpClient {
 
     String query = URLEncoder.encode("project=JENKINS AND status in (Open, \"In Progress\", Reopened) AND component=" + component, "UTF-8");
     String url = "/rest/api/2/search?startAt=" + startAt + "&maxResults=" + maxResults + "&jql=" + query;
-    String jsonInput = getHttpContent(url, Collections.emptyList());
+    String jsonInput = getHttpContent(new HttpGet(url));
     if (Strings.isNullOrEmpty(jsonInput)) {
       String msg = "[" + pluginName + "] Empty return value for " + url;
       logger.debug(msg);

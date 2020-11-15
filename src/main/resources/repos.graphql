@@ -1,0 +1,20 @@
+{
+  organization(login: %s) {
+    repositories(first: 100, after: %s) {
+      pageInfo {
+        startCursor
+        hasNextPage
+        endCursor
+      }
+      edges {
+        node {
+          name
+          defaultBranchRef {
+            name
+          }
+          hasIssuesEnabled
+        }
+      }
+    }
+  }
+}

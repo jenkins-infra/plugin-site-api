@@ -2,8 +2,6 @@ package io.jenkins.plugins.endpoints;
 
 import io.jenkins.plugins.services.PrepareDatastoreService;
 import io.jenkins.plugins.utils.VersionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -21,9 +19,6 @@ import java.util.Map;
 @Path("/health")
 @Produces(MediaType.APPLICATION_JSON)
 public class HealthEndpoint {
-
-  private Logger logger = LoggerFactory.getLogger(HealthEndpoint.class);
-
   @Inject
   private PrepareDatastoreService prepareDatastoreService;
 

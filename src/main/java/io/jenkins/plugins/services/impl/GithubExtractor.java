@@ -10,8 +10,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class GithubExtractor implements WikiExtractor {
   /**
@@ -19,7 +17,6 @@ public abstract class GithubExtractor implements WikiExtractor {
    * to avoid !important override.
    */
   public static final String BOOTSTRAP_PADDING_5 = "p-5";
-  private static final Logger LOGGER = LoggerFactory.getLogger(GithubReadmeExtractor.class);
 
   private static final String API_URL_PATTERN = "https://api.github.com/repos/jenkinsci/%s/%s?ref=%s";
 

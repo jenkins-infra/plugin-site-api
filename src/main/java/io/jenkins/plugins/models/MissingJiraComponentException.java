@@ -3,6 +3,7 @@ package io.jenkins.plugins.models;
 import java.util.Objects;
 
 public class MissingJiraComponentException extends Exception {
+  private static final long serialVersionUID = 128010869245346324L;
   private final String pluginName;
   private final String componentName;
 

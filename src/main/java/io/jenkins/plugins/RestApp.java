@@ -1,11 +1,19 @@
 package io.jenkins.plugins;
 
+import io.jenkins.plugins.services.impl.FetchGithubInfo;
 import io.jenkins.plugins.services.PrepareDatastoreService;
 import io.sentry.Sentry;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.spi.Container;
 import org.glassfish.jersey.server.spi.ContainerLifecycleListener;
+
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.ApplicationPath;
 
@@ -19,6 +27,7 @@ import javax.ws.rs.ApplicationPath;
  */
 @ApplicationPath("/")
 public class RestApp extends ResourceConfig {
+  private final Logger logger = LoggerFactory.getLogger(RestApp.class);
 
   public RestApp() {
     System.setProperty("sentry.stacktrace.app.packages", "io.jenkins.plugins");
@@ -44,6 +53,18 @@ public class RestApp extends ResourceConfig {
 
         Sentry.init();
 
+        Timer fetchGithubInfoTimer = new Timer("fetchGithubInfoTimer");
+        // Update info from github every 3 hours
+        fetchGithubInfoTimer.schedule(new TimerTask() {
+          @Override
+          public void run() {
+            try {
+              locator.getService(FetchGithubInfo.class).execute();
+            } catch (java.io.IOException e) {
+              logger.error("Unable to fetch github information", e);
+            }
+          }
+        }, 0, TimeUnit.HOURS.toMillis(3));
       }
 
       @Override

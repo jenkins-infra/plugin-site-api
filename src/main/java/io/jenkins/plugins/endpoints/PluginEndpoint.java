@@ -2,7 +2,6 @@ package io.jenkins.plugins.endpoints;
 
 import io.jenkins.plugins.models.JiraIssues;
 import io.jenkins.plugins.models.Plugin;
-import io.jenkins.plugins.services.ConfigurationService;
 import io.jenkins.plugins.services.DatastoreService;
 import io.jenkins.plugins.services.ServiceException;
 import io.jenkins.plugins.services.WikiService;
@@ -39,9 +38,6 @@ public class PluginEndpoint {
 
   @Inject
   private WikiService wikiService;
-
-  @Inject
-  private ConfigurationService configurationService;
 
   @Inject
   private HttpClientReleases httpClientReleases;

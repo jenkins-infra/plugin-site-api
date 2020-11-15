@@ -32,6 +32,14 @@ public class Scm {
     this.pullRequests = pullRequests;
   }
 
+  public String getOrganization() {
+    return "jenkinsci";
+  }
+
+  public String getRepo() {
+    return "lighthouse-report-plugin";
+  }
+
   public String getIssues() {
     return issues;
   }

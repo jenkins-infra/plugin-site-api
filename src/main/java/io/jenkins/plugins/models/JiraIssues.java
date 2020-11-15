@@ -9,7 +9,7 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class JiraIssues {
     @JsonProperty("issues")
-    public List<JiraIssue> issues = new ArrayList();
+    public List<JiraIssue> issues = new ArrayList<JiraIssue>();
 
     @JsonProperty("total")
     public int getTotal() {
