@@ -47,10 +47,14 @@ public class HttpClientJiraIssues extends HttpClient {
     return getIssues(pluginName, 0);
   }
 
+  public static String pluginNameToJiraComponent(String pluginName) {
+    return pluginName.replaceAll("-plugin$", "") + "-plugin";
+  }
+
   public JiraIssues getIssues(String pluginName, int startAt) throws IOException {
     int maxResults = 100;
     Sentry.getContext().addExtra("plugin-name", pluginName);
-    String component = pluginName.replaceAll("-plugin$", "") + "-plugin";
+    String component = pluginNameToJiraComponent(pluginName);
     JiraIssues jiraIssues = new JiraIssues();
 
     String query = URLEncoder.encode("project=JENKINS AND status in (Open, \"In Progress\", Reopened) AND component=" + component, "UTF-8");

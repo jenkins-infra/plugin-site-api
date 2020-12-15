@@ -3,7 +3,6 @@ package io.jenkins.plugins.models;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
@@ -11,18 +10,12 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 
-import io.jenkins.plugins.services.impl.FetchGithubInfo;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-
-import javax.inject.Inject;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Plugin {
@@ -108,28 +101,11 @@ public class Plugin {
   @JsonDeserialize(using = LocalDateTimeDeserializer.class)
   private LocalDateTime firstRelease;
 
-  @Inject
-  private FetchGithubInfo fetchGithubInfo;
+  @JsonProperty("defaultBranch")
+  private String defaultBranch;
 
-  public Map<String, String> getExtraProperties() {
-    Map<String, String> extraProperties = new HashMap<>();
-    if (scm == null) { 
-      System.out.println("No SCM");
-      return extraProperties;
-    }
-    if (fetchGithubInfo == null) { 
-      System.out.println("No fetchGithubInfo");
-      return extraProperties;
-    }
-    GithubRepoInformation repoInfo = fetchGithubInfo.getInfoForRepo(scm.getOrganization(), scm.getRepo());
-    if (repoInfo == null) {
-      System.out.println("No repoInfo");
-      return extraProperties;
-    }
-    extraProperties.put("issuesUrl", repoInfo.hasGithubIssuesEnabled ? "github" : "jira");
-    extraProperties.put("defaultBranch", repoInfo.defaultBranch);
-    return extraProperties;
-  }
+  @JsonProperty("issuesUrl")
+  private String issuesUrl;
 
   public Plugin() {
   }
@@ -333,5 +309,22 @@ public class Plugin {
   public void setFirstRelease(LocalDateTime firstRelease) {
     this.firstRelease = firstRelease;
   }
-  
+
+
+  public void setDefaultBranch(String defaultBranch) {
+    this.defaultBranch = defaultBranch;
+  }
+
+  public String getDefaultBranch() {
+    return this.defaultBranch;
+  }
+
+  public void setIssuesUrl(String issuesUrl) {
+    this.issuesUrl = issuesUrl;
+  }
+
+  public String getIssuesUrl() {
+    return this.issuesUrl;
+  }
+
 }

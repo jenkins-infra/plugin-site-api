@@ -123,7 +123,7 @@ public class DefaultConfigurationService implements ConfigurationService {
   }
 
   public String getJiraURL() {
-    return "https://issues.jenkins-ci.org";
+    return "https://issues.jenkins.io";
   }
 
   protected String getJiraUsername() {

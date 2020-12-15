@@ -3,20 +3,32 @@ package io.jenkins.plugins.generate;
 import io.jenkins.plugins.commons.JsonObjectMapper;
 import io.jenkins.plugins.generate.parsers.*;
 import io.jenkins.plugins.models.*;
+import io.jenkins.plugins.services.ConfigurationService;
+import io.jenkins.plugins.services.impl.DefaultConfigurationService;
+import io.jenkins.plugins.services.impl.FetchGithubInfo;
+import io.jenkins.plugins.services.impl.HttpClientJiraIssues;
 import io.jenkins.plugins.utils.VersionUtils;
+
+import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.elasticsearch.common.Strings;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.*;
@@ -40,7 +52,9 @@ public class GeneratePluginData {
   }
 
   public void generate() {
+    final ConfigurationService configurationService = new DefaultConfigurationService();
     final JSONObject updateCenterJson = getUpdateCenterJson();
+    final FetchGithubInfo fetchGithubInfo = getGithubInformation(configurationService);
     final List<PluginDataParser> parsers = Arrays.asList(
       new RootPluginDataParser(),
       new LabelsPluginDataParser(),
@@ -60,6 +74,36 @@ public class GeneratePluginData {
       .map(pluginJson -> {
         final Plugin plugin = new Plugin();
         parsers.forEach(parser -> parser.parse(pluginJson, plugin));
+
+        Scm scm = plugin.getScm();
+        if (scm != null) {
+          try {
+            URL parsed = new URL(scm.getLink());
+            String githubOrganization = parsed.getPath().split("/")[1];
+            String githubRepo = parsed.getPath().split("/")[2];
+            GithubRepoInformation repoInfo = fetchGithubInfo.getInfoForRepo(githubOrganization, githubRepo);
+            if (repoInfo != null) {
+              if (Strings.isNullOrEmpty(scm.getIssues())) {
+                if (repoInfo.hasGithubIssuesEnabled) {
+                  plugin.setIssuesUrl("https://github.com/" + githubOrganization + "/" + githubRepo + "/issues/");
+                } else {
+                  plugin.setIssuesUrl(
+                    configurationService.getJiraURL() + "/issues/?jql=project%3DJENKINS%20AND%20component%3D" + URLEncoder.encode(
+                      HttpClientJiraIssues.pluginNameToJiraComponent(plugin.getName()),
+                      StandardCharsets.UTF_8.toString()
+                    )
+                  );
+                }
+              }
+              plugin.setDefaultBranch(repoInfo.defaultBranch);
+            }
+          } catch (MalformedURLException | UnsupportedEncodingException e){
+            logger.error("Error writing scm deata", e);
+            return null;
+          }
+
+
+        }
         return plugin;
       })
       .collect(Collectors.toList());
@@ -91,7 +135,7 @@ public class GeneratePluginData {
     }
   }
 
-  private void writePluginsToFile(List<Plugin> plugins) {
+  private void writePluginsToFile(final List<Plugin> plugins) {
     final File data = Paths.get(System.getProperty("user.dir"), "target", "plugins.json.gzip").toFile();
     try(final Writer writer = new BufferedWriter(new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(data)), StandardCharsets.UTF_8))) {
       final String mappingVersion = VersionUtils.getMappingVersion();
@@ -101,6 +145,17 @@ public class GeneratePluginData {
       logger.error("Problem writing plugin data to file", e);
       throw new RuntimeException(e);
     }
+    logger.info("Wrote to " + data.getAbsolutePath());
   }
 
+  private FetchGithubInfo getGithubInformation(final ConfigurationService configurationService) {
+    final FetchGithubInfo fetchGithubInfo = new FetchGithubInfo(configurationService);
+    try {
+      fetchGithubInfo.execute();
+    } catch (Exception e) {
+      logger.error("Error fetching github information", e);
+      throw new RuntimeException(e);
+    }
+    return fetchGithubInfo;
+  }
 }

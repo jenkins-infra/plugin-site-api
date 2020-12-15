@@ -30,7 +30,7 @@ public class FetchGithubInfo extends HttpClient {
     return repoInformationMap.get(organization + "/" + repo);
   }
 
-  public void execute() throws UnsupportedEncodingException, IOException {
+  public Map<String, GithubRepoInformation> execute() throws UnsupportedEncodingException, IOException {
     final File file = new File(getClass().getClassLoader().getResource("repos.graphql").getFile());
     final String organization = "jenkinsci";
     final Map<String, GithubRepoInformation> tempRepoInformationMap = new HashMap<String, GithubRepoInformation>();
@@ -96,5 +96,7 @@ public class FetchGithubInfo extends HttpClient {
       repoInformationMap = tempRepoInformationMap;
     }
     logger.info("Retrieved GitHub repo data");
+
+    return repoInformationMap;
   }
 }

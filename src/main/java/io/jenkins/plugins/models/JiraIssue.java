@@ -37,7 +37,7 @@ public class JiraIssue {
 
     @JsonProperty("url")
     public String getUrl() {
-      return "https://issues.jenkins-ci.org/browse/" + this.key;
+      return "https://issues.jenkins.io/browse/" + this.key;
     }
 
     public JiraIssue() {
