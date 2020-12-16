@@ -13,7 +13,6 @@ import com.vladsch.flexmark.ext.tables.TablesExtension;
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.data.MutableDataSet;
-import io.jenkins.plugins.endpoints.PluginEndpoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

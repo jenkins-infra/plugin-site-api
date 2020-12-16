@@ -3,7 +3,10 @@ package io.jenkins.plugins.generate;
 import io.jenkins.plugins.commons.JsonObjectMapper;
 import io.jenkins.plugins.generate.parsers.*;
 import io.jenkins.plugins.models.*;
+import io.jenkins.plugins.services.ConfigurationService;
+import io.jenkins.plugins.services.impl.DefaultConfigurationService;
 import io.jenkins.plugins.utils.VersionUtils;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
@@ -40,6 +43,7 @@ public class GeneratePluginData {
   }
 
   public void generate() {
+    final ConfigurationService configurationService = new DefaultConfigurationService();
     final JSONObject updateCenterJson = getUpdateCenterJson();
     final List<PluginDataParser> parsers = Arrays.asList(
       new RootPluginDataParser(),
@@ -52,7 +56,8 @@ public class GeneratePluginData {
       new ScmPluginDataParser(),
       new SecurityWarningsPluginDataParser(updateCenterJson),
       new StatsPluginDataParser(),
-      new WikiPluginDataParser()
+      new WikiPluginDataParser(),
+      new GithubDataParser(configurationService)
     );
     final JSONObject pluginsJson = updateCenterJson.getJSONObject("plugins");
     final List<Plugin> plugins = pluginsJson.keySet().stream()
@@ -91,7 +96,7 @@ public class GeneratePluginData {
     }
   }
 
-  private void writePluginsToFile(List<Plugin> plugins) {
+  private void writePluginsToFile(final List<Plugin> plugins) {
     final File data = Paths.get(System.getProperty("user.dir"), "target", "plugins.json.gzip").toFile();
     try(final Writer writer = new BufferedWriter(new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(data)), StandardCharsets.UTF_8))) {
       final String mappingVersion = VersionUtils.getMappingVersion();
@@ -101,6 +106,6 @@ public class GeneratePluginData {
       logger.error("Problem writing plugin data to file", e);
       throw new RuntimeException(e);
     }
+    logger.info("Wrote to " + data.getAbsolutePath());
   }
-
 }

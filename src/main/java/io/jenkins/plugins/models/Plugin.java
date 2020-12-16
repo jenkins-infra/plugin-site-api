@@ -101,6 +101,12 @@ public class Plugin {
   @JsonDeserialize(using = LocalDateTimeDeserializer.class)
   private LocalDateTime firstRelease;
 
+  @JsonProperty("defaultBranch")
+  private String defaultBranch;
+
+  @JsonProperty("issuesUrl")
+  private String issuesUrl;
+
   public Plugin() {
   }
 
@@ -303,4 +309,22 @@ public class Plugin {
   public void setFirstRelease(LocalDateTime firstRelease) {
     this.firstRelease = firstRelease;
   }
+
+
+  public void setDefaultBranch(String defaultBranch) {
+    this.defaultBranch = defaultBranch;
+  }
+
+  public String getDefaultBranch() {
+    return this.defaultBranch;
+  }
+
+  public void setIssuesUrl(String issuesUrl) {
+    this.issuesUrl = issuesUrl;
+  }
+
+  public String getIssuesUrl() {
+    return this.issuesUrl;
+  }
+
 }

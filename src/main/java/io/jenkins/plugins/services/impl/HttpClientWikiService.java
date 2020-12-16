@@ -7,14 +7,15 @@ import io.jenkins.plugins.services.ConfigurationService;
 import io.jenkins.plugins.services.ServiceException;
 import io.jenkins.plugins.services.WikiService;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.Header;
-import org.apache.http.message.BasicHeader;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -88,18 +89,19 @@ public class HttpClientWikiService extends HttpClient implements WikiService {
 
   private String doGetWikiContent(String wikiUrl) {
     for (WikiExtractor extractor: WIKI_URLS) {
-       String apiUrl = extractor.getApiUrl(wikiUrl);
-       if (apiUrl != null) {
-         List<Header> headers = new ArrayList(extractor.getHeaders());
-         String content = getHttpContent(apiUrl, headers);
-         headers.add(new BasicHeader("User-Agent", "jenkins-wiki-exporter/actually-plugin-site-api"));
-         if (content == null) {
-           return null; // error logged in getHttpContent
-         }
-         return extractor.extractHtml(content, wikiUrl, this);
-       }
-     }
-     return null;
+      String apiUrl = extractor.getApiUrl(wikiUrl);
+      if (apiUrl != null) {
+        HttpRequestBase httpRequest = new HttpGet(apiUrl);
+        extractor.getHeaders().stream().forEach(httpRequest::setHeader);
+        httpRequest.setHeader("User-Agent", "jenkins-wiki-exporter/actually-plugin-site-api");
+        String content = getHttpContent(httpRequest);
+        if (content == null) {
+          return null; // error logged in getHttpContent
+        }
+        return extractor.extractHtml(content, wikiUrl, this);
+      }
+    }
+    return null;
   }
 
   private Optional<WikiExtractor> getExtractor(String url) {

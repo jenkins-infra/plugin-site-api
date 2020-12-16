@@ -11,10 +11,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 
 public class PluginSiteApiWireMockRule extends WireMockRule {
-  private static String wiremockPath;
+  private final String wiremockPath;
   private final List<String> urls;
 
-  public PluginSiteApiWireMockRule(Class clazz, List<String> urls) {
+  public PluginSiteApiWireMockRule(Class<?> clazz, List<String> urls) {
     super(options().dynamicPort().usingFilesUnderDirectory("src/test/resources/wiremocks/" + clazz.getSimpleName()));
     this.wiremockPath = "src/test/resources/wiremocks/" + clazz.getSimpleName();
     this.urls = urls;

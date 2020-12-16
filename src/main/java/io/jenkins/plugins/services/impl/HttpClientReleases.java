@@ -3,20 +3,20 @@ package io.jenkins.plugins.services.impl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import javax.inject.Inject;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.methods.HttpGet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.jenkins.plugins.endpoints.PluginEndpoint;
 import io.jenkins.plugins.models.Plugin;
 import io.jenkins.plugins.models.PluginRelease;
 import io.jenkins.plugins.models.PluginReleases;
 import io.jenkins.plugins.services.ConfigurationService;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 
 public class HttpClientReleases extends HttpClient {
   private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -45,7 +45,7 @@ public class HttpClientReleases extends HttpClient {
       scmUrl[1]
     );
 
-    String jsonInput = this.getHttpContent(URL, Collections.emptyList());
+    String jsonInput = this.getHttpContent(new HttpGet(URL));
     if (Strings.isNullOrEmpty(jsonInput)) {
       throw new IOException("Empty return value");
     }
