@@ -6,7 +6,6 @@ import io.jenkins.plugins.models.GithubRepoInformation;
 import io.jenkins.plugins.generate.PluginDataParser;
 import io.jenkins.plugins.models.Plugin;
 import io.jenkins.plugins.services.ConfigurationService;
-import io.jenkins.plugins.services.impl.DefaultConfigurationService;
 import io.jenkins.plugins.services.impl.FetchGithubInfo;
 import io.jenkins.plugins.services.impl.HttpClientJiraIssues;
 import org.apache.commons.lang3.StringUtils;
