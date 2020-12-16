@@ -1,15 +1,11 @@
 package io.jenkins.plugins;
 
-import io.jenkins.plugins.services.impl.FetchGithubInfo;
 import io.jenkins.plugins.services.PrepareDatastoreService;
 import io.sentry.Sentry;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.spi.Container;
 import org.glassfish.jersey.server.spi.ContainerLifecycleListener;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.ApplicationPath;
 
@@ -23,7 +19,6 @@ import javax.ws.rs.ApplicationPath;
  */
 @ApplicationPath("/")
 public class RestApp extends ResourceConfig {
-  private final Logger logger = LoggerFactory.getLogger(RestApp.class);
 
   public RestApp() {
     System.setProperty("sentry.stacktrace.app.packages", "io.jenkins.plugins");
@@ -37,6 +32,30 @@ public class RestApp extends ResourceConfig {
     register(new io.sentry.servlet.SentryServletContainerInitializer());
 
     register(new io.sentry.servlet.SentryServletRequestListener());
+
+    // Ensure datastore is populated at boot
+    register(new ContainerLifecycleListener() {
+      @Override
+      public void onStartup(Container container) {
+        final ServiceLocator locator = container.getApplicationHandler().getServiceLocator();
+        final PrepareDatastoreService service = locator.getService(PrepareDatastoreService.class);
+        service.populateDataStore();
+        service.schedulePopulateDataStore();
+
+        Sentry.init();
+
+      }
+
+      @Override
+      public void onReload(Container container) {
+        // Do nothing
+      }
+
+      @Override
+      public void onShutdown(Container container) {
+        // Do nothing
+      }
+    });
 
     // Web tier
     packages("io.jenkins.plugins");

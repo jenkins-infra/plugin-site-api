@@ -28,7 +28,5 @@ public class Binder extends AbstractBinder {
     bind(ElasticsearchPrepareDatastoreService.class).to(PrepareDatastoreService.class).in(Singleton.class);
     bind(HttpClientReleases.class).to(HttpClientReleases.class).in(Singleton.class);
     bind(HttpClientJiraIssues.class).to(HttpClientJiraIssues.class).in(Singleton.class);
-    bind(FetchGithubInfo.class).to(FetchGithubInfo.class).in(Singleton.class);
-
   }
 }

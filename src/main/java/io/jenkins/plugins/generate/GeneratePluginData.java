@@ -54,7 +54,6 @@ public class GeneratePluginData {
   public void generate() {
     final ConfigurationService configurationService = new DefaultConfigurationService();
     final JSONObject updateCenterJson = getUpdateCenterJson();
-    final FetchGithubInfo fetchGithubInfo = getGithubInformation(configurationService);
     final List<PluginDataParser> parsers = Arrays.asList(
       new RootPluginDataParser(),
       new LabelsPluginDataParser(),
@@ -66,7 +65,8 @@ public class GeneratePluginData {
       new ScmPluginDataParser(),
       new SecurityWarningsPluginDataParser(updateCenterJson),
       new StatsPluginDataParser(),
-      new WikiPluginDataParser()
+      new WikiPluginDataParser(),
+      new GithubDataParser(configurationService)
     );
     final JSONObject pluginsJson = updateCenterJson.getJSONObject("plugins");
     final List<Plugin> plugins = pluginsJson.keySet().stream()
@@ -74,36 +74,6 @@ public class GeneratePluginData {
       .map(pluginJson -> {
         final Plugin plugin = new Plugin();
         parsers.forEach(parser -> parser.parse(pluginJson, plugin));
-
-        Scm scm = plugin.getScm();
-        if (scm != null) {
-          try {
-            URL parsed = new URL(scm.getLink());
-            String githubOrganization = parsed.getPath().split("/")[1];
-            String githubRepo = parsed.getPath().split("/")[2];
-            GithubRepoInformation repoInfo = fetchGithubInfo.getInfoForRepo(githubOrganization, githubRepo);
-            if (repoInfo != null) {
-              if (Strings.isNullOrEmpty(scm.getIssues())) {
-                if (repoInfo.hasGithubIssuesEnabled) {
-                  plugin.setIssuesUrl("https://github.com/" + githubOrganization + "/" + githubRepo + "/issues/");
-                } else {
-                  plugin.setIssuesUrl(
-                    configurationService.getJiraURL() + "/issues/?jql=project%3DJENKINS%20AND%20component%3D" + URLEncoder.encode(
-                      HttpClientJiraIssues.pluginNameToJiraComponent(plugin.getName()),
-                      StandardCharsets.UTF_8.toString()
-                    )
-                  );
-                }
-              }
-              plugin.setDefaultBranch(repoInfo.defaultBranch);
-            }
-          } catch (MalformedURLException | UnsupportedEncodingException e){
-            logger.error("Error writing scm deata", e);
-            return null;
-          }
-
-
-        }
         return plugin;
       })
       .collect(Collectors.toList());
@@ -146,16 +116,5 @@ public class GeneratePluginData {
       throw new RuntimeException(e);
     }
     logger.info("Wrote to " + data.getAbsolutePath());
-  }
-
-  private FetchGithubInfo getGithubInformation(final ConfigurationService configurationService) {
-    final FetchGithubInfo fetchGithubInfo = new FetchGithubInfo(configurationService);
-    try {
-      fetchGithubInfo.execute();
-    } catch (Exception e) {
-      logger.error("Error fetching github information", e);
-      throw new RuntimeException(e);
-    }
-    return fetchGithubInfo;
   }
 }

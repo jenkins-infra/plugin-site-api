@@ -66,19 +66,7 @@
         "report",
         "upload"
       ]
-    },
-
-    {
-      "id": "themes",
-      "title": "Themes",
-      "description": "Adds different styling to jenkins",
-      "labels":
-      [
-        "ui",
-        "themes",
-        "theme",
-        "jenkins-ui"
-      ]
     }
+
   ]
 }
