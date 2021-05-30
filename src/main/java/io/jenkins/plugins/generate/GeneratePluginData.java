@@ -63,7 +63,31 @@ public class GeneratePluginData {
         return plugin;
       })
       .collect(Collectors.toList());
+      plugins.forEach(p -> computeTrend(p, plugins));
     writePluginsToFile(plugins);
+  }
+
+  private void computeTrend(Plugin plugin, List<Plugin> plugins) {
+    double dependentInstallPctLastMonth = plugins.stream().filter(p -> isDependency(p, plugin))
+      .map(p -> getInstallPct(p, 1))
+      .max(Double::compare).orElse(0.0);
+    double installPctLastMonth = getInstallPct(plugin, 1);
+    double installPctMonthBefore = getInstallPct(plugin, 2);
+    double independence = Math.max(0, 1 - dependentInstallPctLastMonth / installPctLastMonth);
+    int trend =  (int) ((installPctLastMonth - installPctMonthBefore) * independence * 1E4);
+    plugin.getStats().setTrend(trend);
+  }
+
+  private double getInstallPct(Plugin p, int monthsAgo) {
+    List<InstallationPercentage> stats = p.getStats().getInstallationsPercentage();
+    if (stats != null && stats.size() >= monthsAgo) {
+      return stats.get(stats.size() - monthsAgo).getPercentage();
+    }
+    return 0;
+  }
+
+  private boolean isDependency(Plugin p, Plugin plugin) {
+    return p.getDependencies().stream().anyMatch(d -> d.getName().equals(plugin.getName()));
   }
 
   private JSONObject getUpdateCenterJson() {
