@@ -55,20 +55,30 @@ public class GeneratePluginData {
       new WikiPluginDataParser()
     );
     final JSONObject pluginsJson = updateCenterJson.getJSONObject("plugins");
+    final HashMap<String, List<Plugin>> reverseDependencies = new HashMap<>();
     final List<Plugin> plugins = pluginsJson.keySet().stream()
       .map(pluginsJson::getJSONObject)
       .map(pluginJson -> {
         final Plugin plugin = new Plugin();
         parsers.forEach(parser -> parser.parse(pluginJson, plugin));
+        computeReverseDependencies(plugin, reverseDependencies);
         return plugin;
       })
       .collect(Collectors.toList());
-      plugins.forEach(p -> computeTrend(p, plugins));
+    plugins.forEach(p -> computeTrend(p, reverseDependencies));
     writePluginsToFile(plugins);
   }
 
-  private void computeTrend(Plugin plugin, List<Plugin> plugins) {
-    double dependentInstallPctLastMonth = plugins.stream().filter(p -> isDependency(p, plugin))
+  private void computeReverseDependencies(Plugin plugin,
+                                          HashMap<String, List<Plugin>> reverseDependencies) {
+    plugin.getDependencies().stream().filter(d -> !d.isOptional()).forEach(dependency -> {
+      reverseDependencies.computeIfAbsent(dependency.getName(), e -> new ArrayList<>()).add(plugin);
+    });
+  }
+
+  private void computeTrend(Plugin plugin, HashMap<String, List<Plugin>> reverseDependencies) {
+    double dependentInstallPctLastMonth = reverseDependencies
+      .getOrDefault(plugin.getName(), Collections.emptyList()).stream()
       .map(p -> getInstallPct(p, 1))
       .max(Double::compare).orElse(0.0);
     double installPctLastMonth = getInstallPct(plugin, 1);
@@ -84,10 +94,6 @@ public class GeneratePluginData {
       return stats.get(stats.size() - monthsAgo).getPercentage();
     }
     return 0;
-  }
-
-  private boolean isDependency(Plugin p, Plugin plugin) {
-    return p.getDependencies().stream().anyMatch(d -> d.getName().equals(plugin.getName()));
   }
 
   private JSONObject getUpdateCenterJson() {
