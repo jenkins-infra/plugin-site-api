@@ -33,6 +33,8 @@ public class GeneratePluginData {
   private static final Logger logger = LoggerFactory.getLogger(GeneratePluginData.class);
 
   private static final String UPDATE_CENTER_JSON = "https://updates.jenkins.io/current/update-center.actual.json";
+  // trend value of plugin with no dependencies that was installed on 1% instances in a month
+  private static final double TREND_POINTS_PER_PERCENT = 1E4;
 
   public static void main(String[] args) {
     final GeneratePluginData generatePluginData = new GeneratePluginData();
@@ -82,9 +84,9 @@ public class GeneratePluginData {
       .map(p -> getInstallPct(p, 1))
       .max(Double::compare).orElse(0.0);
     double installPctLastMonth = getInstallPct(plugin, 1);
-    double installPctMonthBefore = getInstallPct(plugin, 2);
+    double installPctDiff =  installPctLastMonth - getInstallPct(plugin, 2);
     double independence = Math.max(0, 1 - dependentInstallPctLastMonth / installPctLastMonth);
-    int trend =  (int) ((installPctLastMonth - installPctMonthBefore) * independence * 1E4);
+    int trend =  (int) (installPctDiff * independence * TREND_POINTS_PER_PERCENT);
     plugin.getStats().setTrend(trend);
   }
 
