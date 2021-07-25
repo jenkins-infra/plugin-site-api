@@ -1,9 +1,10 @@
 package io.jenkins.plugins.services.impl;
 
+import io.jenkins.plugins.models.Plugin;
+import org.apache.commons.lang3.ObjectUtils;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import io.jenkins.plugins.models.Plugin;
 
 public class GithubReadmeExtractor extends GithubExtractor {
 
@@ -28,8 +29,8 @@ public class GithubReadmeExtractor extends GithubExtractor {
 
     @Override
     public String getBranch() {
-      String branch = matcher.group(3);
-      return branch == null ? plugin.getDefaultBranch() : branch;
+      return ObjectUtils.firstNonNull(matcher.group(3),
+        plugin.getDefaultBranch(), "master");
     }
 
     @Override
