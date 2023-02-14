@@ -47,12 +47,10 @@ node('docker&&linux') {
                     withEnv([
                         'DATA_FILE_URL=http://nginx/plugins.json.gzip',
                     ]) {
-                        List<String> mvnOptions = ['-Dmaven.test.failure.ignore','verify']
-                        infra.runMaven(
-                            mvnOptions,
+                        infra.runWithMaven(
+                            'mvn -Dmaven.test.failure.ignore verify',
                             /*jdk*/ "8",
                             /*extraEnv*/ null,
-                            /*settingsFile*/ null,
                             /*addToolEnv*/ false
                           )
                     }
