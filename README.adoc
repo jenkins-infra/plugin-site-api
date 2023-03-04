@@ -66,13 +66,7 @@ Make sure your pem file is convered from the format github apps gives you to the
 openssl pkcs8 -topk8 -inform PEM -outform PEM -in devpluginsjenkinsio.2020-07-28.private-key.pem -out githubapp.pem -nocrypt
 ----
 
-Then configure it by
 
-[source,bash]
-----
-GITHUB_APP_ID=1234
-GITHUB_APP_PRIVATE_KEY="/path/to/pem/file"
----
 
 == Run Docker Plugin Site API
 
