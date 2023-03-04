@@ -45,6 +45,7 @@ contains new data. If so the application will the reindex the Elasticsearch data
 
 == Run Local Plugin Site API
 
+[source,bash]
 ----
 GITHUB_TOKEN=token from https://github.com/settings/tokens
 DATA_FILE_URL="https://ci.jenkins.io/job/Infra/job/plugin-site-api/job/generate-data/lastSuccessfulBuild/artifact/plugins.json.gzip" mvn jetty:run
@@ -60,12 +61,14 @@ If `GITHUB_APP_ID` and `GITHUB_APP_PRIVATE_KEY` are not set it will try to use a
 You can still use the GITHUB_TOKEN method, but preference is to use github apps (https://github.com/settings/apps)
 Make sure your pem file is convered from the format github apps gives you to the PKCS#8 format by running
 
+[source,bash]
 ----
 openssl pkcs8 -topk8 -inform PEM -outform PEM -in devpluginsjenkinsio.2020-07-28.private-key.pem -out githubapp.pem -nocrypt
 ----
 
 Then configure it by
 
+[source,bash]
 ----
 GITHUB_APP_ID=1234
 GITHUB_APP_PRIVATE_KEY="/path/to/pem/file"
@@ -73,6 +76,7 @@ GITHUB_APP_PRIVATE_KEY="/path/to/pem/file"
 
 == Run Docker Plugin Site API
 
+[source,bash]
 ----
 docker build -t jenkinsciinfra/plugin-site-api .
 docker run -p 8080:8080 -it -e DATA_FILE_URL="http://url.to/plugins.json.gzip" jenkinsciinfra/plugin-site-api
@@ -80,6 +84,7 @@ docker run -p 8080:8080 -it -e DATA_FILE_URL="http://url.to/plugins.json.gzip" j
 
 == Rebuild Elasticsearch data
 
+[source,bash]
 ----
 mvn -P generatePluginData
 ----
@@ -87,9 +92,10 @@ mvn -P generatePluginData
 This will generate a new file in `target/plugins.json.gzip` consisting of plugin information and installation
 statistics. This file can be now passed as `DATA_FILE_URL`:
 
-```
+[source,bash]
+----
 DATA_FILE_URL="file://$(pwd)/target/plugins.json.gzip" mvn jetty:run
-```
+----
 
 == REST API Reference
 
@@ -112,6 +118,8 @@ Retrieve categories with their labels. It will be necessary to call /labels
 to get the titles
 
 Sample Response
+
+[source,bash]
 ----
 {
   "categories":
@@ -136,6 +144,8 @@ Sample Response
 Retrieve unique maintainers in the plugin data.
 
 Sample Response
+
+[source,bash]
 ----
 {
     "maintainers": [
@@ -165,6 +175,8 @@ Retrieve available plugin labels. "title" is an optional field so it may be
 missing from some labels.
 
 Sample Response
+
+[source,bash]
 ----
 {
   "labels" :
@@ -202,6 +214,8 @@ Retrieves information about a plugin
 Could return 404 if plugin is not found
 
 Sample Response
+
+[source,bash]
 ----
 {
   "buildDate": "Jul 04, 2016",
@@ -296,11 +310,15 @@ Search for plugins
 |=======================
 
 Sample Request
+
+[source,bash]
 ----
 GET /plugins?q=git&sort=name&limit=3&page=1
 ----
 
 Sample Response
+
+[source,bash]
 ----
 {
   "page": 1,
@@ -398,11 +416,15 @@ Get top "limit" install plugins
 |=======================
 
 Sample Request
+
+[source,bash]
 ----
 GET /plugins/installed
 ----
 
 Sample Response
+
+[source,bash]
 ----
 {
   "page": 1,
@@ -500,11 +522,15 @@ Get top "limit" trending plugins
 |=======================
 
 Sample Request
+
+[source,bash]
 ----
 GET /plugins/trend
 ----
 
 Sample Response
+
+[source,bash]
 ----
 {
   "page": 1,
@@ -602,11 +628,15 @@ Get top "limit" recently updated plugins
 |=======================
 
 Sample Request
+
+[source,bash]
 ----
 GET /plugins/updated
 ----
 
 Sample Response
+
+[source,bash]
 ----
 {
   "page": 1,
@@ -697,6 +727,8 @@ Sample Response
 Retrieve unique required Jenkins versions in the plugin data.
 
 Sample Response
+
+[source,bash]
 ----
 {
   "limit": 226,
