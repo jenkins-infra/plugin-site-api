@@ -89,7 +89,7 @@ node('docker&&linux') {
              */
             stage('Verify Container') {
                 container.withRun("--link ${c.id}:nginx -e DATA_FILE_URL=http://nginx/plugins.json.gzip") { api ->
-                    docker.image('bash:latest').inside("--link ${api.id}:api") {
+                    docker.image('bash@sha256:95599adce80c5f938a8445eca59a8ac4e380f75b0e3e21971b37099c0c54a187').inside("--link ${api.id}:api") {
                         sh 'ls /usr/bin'
                         sh '/usr/bin/wget --debug -O /dev/null --retry-connrefused --timeout 120 --tries=15 http://api:8080/versions'
                     }
