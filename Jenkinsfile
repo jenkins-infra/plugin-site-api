@@ -26,7 +26,7 @@ node('docker&&linux') {
 
     timestamps {
         stage('Generate Plugin Data') {
-          infra.runMaven(['-PgeneratePluginData'], '17')
+          infra.runMaven(['-PgeneratePluginData'], '17', null, true, !infra.isTrusted())
         }
 
         /*
@@ -44,7 +44,7 @@ node('docker&&linux') {
               withEnv([
                 'DATA_FILE_URL=http://localhost/plugins.json.gzip',
               ]) {
-                infra.runMaven(['-Dmaven.test.failure.ignore',  'verify'])
+                infra.runMaven(['-Dmaven.test.failure.ignore',  'verify'], '8', null, true, !infra.isTrusted())
               }
 
                 /** archive all our artifacts for reporting later */
