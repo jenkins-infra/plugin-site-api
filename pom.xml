@@ -85,7 +85,7 @@
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
-      <version>4.5.13</version>
+      <version>4.5.14</version>
     </dependency>
     <dependency>
       <groupId>org.elasticsearch</groupId>
@@ -263,7 +263,7 @@
       <plugin>
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-maven-plugin</artifactId>
-        <version>9.4.20.v20190813</version>
+        <version>9.4.53.v20231009</version>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
