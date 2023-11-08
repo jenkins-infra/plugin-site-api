@@ -13,7 +13,8 @@ if (!isPullRequest) {
     ])
 }
 
-node('docker&&linux') {
+// 'linux' is the (legacy) label used on ci.jenkins.io for "Docker Linux AMD64" while 'linux-amd64-docker' is the label used on infra.ci.jenkins.io
+node('linux || linux-amd64-docker') {
     /* Make sure we're always starting with a fresh workspace */
     deleteDir()
 
@@ -41,14 +42,15 @@ node('docker&&linux') {
              * the nginx container for accessing the DATA_FILE_URL
              */
             stage('Build') {
-              withEnv([
-                'DATA_FILE_URL=http://localhost/plugins.json.gzip',
-              ]) {
-                infra.runMaven(['-Dmaven.test.failure.ignore',  'verify'], '8', null, true, !infra.isTrusted())
-              }
+                withEnv([
+                    'DATA_FILE_URL=http://localhost/plugins.json.gzip',
+                ]) {
+                    infra.runMaven(['-Dmaven.test.failure.ignore',  'verify'], '8', null, true, !infra.isTrusted())
+                }
 
                 /** archive all our artifacts for reporting later */
                 junit 'target/surefire-reports/**/*.xml'
+                stash name: 'build', includes: 'plugins.json.gzip,target/**/*'
             }
 
             /*
@@ -59,19 +61,13 @@ node('docker&&linux') {
             def container
             stage('Containerize') {
                 if (tag.isEmpty()) {
-                  echo "No tag for this commit, creating a docker image with ${shortCommit} version..."
-                  dockerImage = "jenkinsciinfra/plugin-site-api:${env.BUILD_ID}-${shortCommit}"
+                echo "No tag for this commit, creating a docker image with ${shortCommit} version..."
+                dockerImage = "jenkinsciinfra/plugin-site-api:${env.BUILD_ID}-${shortCommit}"
                 } else {
-                  echo "Tag found for this commit, creating a docker image with ${tag} version..."
-                  dockerImage = "jenkinsciinfra/plugin-site-api:${tag}"
+                echo "Tag found for this commit, creating a docker image with ${tag} version..."
+                dockerImage = "jenkinsciinfra/plugin-site-api:${tag}"
                 }
                 container = docker.build(dockerImage, '--no-cache --rm .')
-                if (pushToDocker) {
-                    echo "Pushing container ${dockerImage}"
-                    infra.withDockerCredentials {
-                        container.push()
-                    }
-                }
             }
 
             /*
@@ -83,17 +79,10 @@ node('docker&&linux') {
                     sh 'wget --debug -O /dev/null --retry-connrefused --timeout 120 --tries=15 http://localhost:8080/versions'
                 }
             }
-
-            stage('Tag container as latest') {
-                if (pushToDocker) {
-                    echo "Tagging ${dockerImage} as latest"
-                    infra.withDockerCredentials {
-                        container.push('latest')
-                    }
-                }
-            }
         }
-
+        stage('Build and publish Docker image') {
+            buildDockerAndPublishImage('plugin-site-api', [unstash: 'build', targetplatforms: 'linux/amd64'])
+        }
         stage('Archive Artifacts') {
             archiveArtifacts artifacts: 'target/*.war, target/*.json.gzip', fingerprint: true
         }
