@@ -1,7 +1,6 @@
 #!/usr/bin/env groovy
 
 def isPullRequest = !!(env.CHANGE_ID)
-def pushToDocker = infra.isTrusted()
 String shortCommit = ''
 String tag = ''
 String dockerImage = ''
