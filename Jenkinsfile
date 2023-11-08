@@ -60,11 +60,11 @@ node('linux || linux-amd64-docker') {
             def container
             stage('Containerize') {
                 if (tag.isEmpty()) {
-                echo "No tag for this commit, creating a docker image with ${shortCommit} version..."
-                dockerImage = "jenkinsciinfra/plugin-site-api:${env.BUILD_ID}-${shortCommit}"
+                    echo "No tag for this commit, creating a docker image with ${shortCommit} version..."
+                    dockerImage = "jenkinsciinfra/plugin-site-api:${env.BUILD_ID}-${shortCommit}"
                 } else {
-                echo "Tag found for this commit, creating a docker image with ${tag} version..."
-                dockerImage = "jenkinsciinfra/plugin-site-api:${tag}"
+                    echo "Tag found for this commit, creating a docker image with ${tag} version..."
+                    dockerImage = "jenkinsciinfra/plugin-site-api:${tag}"
                 }
                 container = docker.build(dockerImage, '--no-cache --rm .')
             }
