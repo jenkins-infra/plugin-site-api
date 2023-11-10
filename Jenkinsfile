@@ -46,6 +46,7 @@ node('linux || linux-amd64-docker') {
                         'DATA_FILE_URL=http://localhost/plugins.json.gzip',
                     ]) {
                         infra.runMaven(['-Dmaven.test.failure.ignore',  'verify'], '8', null, true, !infra.isTrusted())
+                        stash name: 'build', includes: 'plugins.json.gzip,target/**/*'
                     }
 
                     /** archive all our artifacts for reporting later */
