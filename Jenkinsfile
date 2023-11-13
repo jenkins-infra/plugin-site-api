@@ -1,5 +1,5 @@
 #!/usr/bin/env groovy
-@Library('pipeline-library@pull/<pull-request-number>/head') _
+@Library('pipeline-library@pull/784/head') _
 
 def isPullRequest = !!(env.CHANGE_ID)
 String shortCommit = ''
