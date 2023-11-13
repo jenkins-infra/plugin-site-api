@@ -1,4 +1,5 @@
 #!/usr/bin/env groovy
+
 def isPullRequest = !!(env.CHANGE_ID)
 String shortCommit = ''
 String tag = ''
