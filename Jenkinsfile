@@ -1,6 +1,4 @@
 #!/usr/bin/env groovy
-@Library('pipeline-library@pull/784/head') _
-
 def isPullRequest = !!(env.CHANGE_ID)
 String shortCommit = ''
 String tag = ''
@@ -82,11 +80,13 @@ node('linux || linux-amd64-docker') {
                 }
             }
         } else {
-            infra.runMaven(['-Dmaven.test.skip=true',  'package'], '8')
-            stash name: 'build', includes: 'plugins.json.gzip,target/**/*'
-        }
-        stage('Build and publish Docker image') {
-            buildDockerAndPublishImage('plugin-site-api', [unstash: 'build', enablePublication: infra.isInfra(), targetplatforms: 'linux/amd64'])
+            stage('Maven build') {
+                infra.runMaven(['-Dmaven.test.skip=true',  'package'], '8')
+                stash name: 'build', includes: 'plugins.json.gzip,target/**/*'
+            }
+            stage('Build and publish Docker image') {
+                buildDockerAndPublishImage('plugin-site-api', [unstash: 'build', targetplatforms: 'linux/amd64'])
+            }
         }
         stage('Archive Artifacts') {
             archiveArtifacts artifacts: 'target/*.war, target/*.json.gzip', fingerprint: true
