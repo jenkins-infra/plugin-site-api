@@ -87,6 +87,7 @@ node('linux || linux-amd64-docker') {
                 buildDockerAndPublishImage('plugin-site-api', [unstash: 'build', targetplatforms: 'linux/amd64'])
             }
         }
+
         stage('Archive Artifacts') {
             archiveArtifacts artifacts: 'target/*.war, target/*.json.gzip', fingerprint: true
         }
