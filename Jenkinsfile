@@ -1,4 +1,5 @@
 #!/usr/bin/env groovy
+@Library('pipeline-library@pull/<pull-request-number>/head') _
 
 def isPullRequest = !!(env.CHANGE_ID)
 String shortCommit = ''
@@ -85,7 +86,7 @@ node('linux || linux-amd64-docker') {
             stash name: 'build', includes: 'plugins.json.gzip,target/**/*'
         }
         stage('Build and publish Docker image') {
-            buildDockerAndPublishImage('plugin-site-api', [unstash: 'build', targetplatforms: 'linux/amd64'])
+            buildDockerAndPublishImage('plugin-site-api', [unstash: 'build', enablePublication: infra.isInfra(), targetplatforms: 'linux/amd64'])
         }
         stage('Archive Artifacts') {
             archiveArtifacts artifacts: 'target/*.war, target/*.json.gzip', fingerprint: true
