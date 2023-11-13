@@ -85,7 +85,7 @@ node('linux || linux-amd64-docker') {
                 stash name: 'build', includes: 'target/*.war'
             }
             stage('Build and publish Docker image') {
-                buildDockerAndPublishImage('plugin-site-api', [unstash: 'build', targetplatforms: 'linux/amd64'])
+                buildDockerAndPublishImage('plugin-site-api', [unstash: 'build', targetplatforms: 'linux/amd64,linux/arm64'])
             }
         }
 
