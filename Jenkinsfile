@@ -12,8 +12,7 @@ if (!isPullRequest) {
     ])
 }
 
-// 'linux' is the (legacy) label used on ci.jenkins.io for "Docker Linux AMD64" while 'linux-amd64-docker' is the label used on infra.ci.jenkins.io
-node('linux || linux-amd64-docker') {
+node('linux-arm64') {
     /* Make sure we're always starting with a fresh workspace */
     deleteDir()
 
