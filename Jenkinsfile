@@ -1,7 +1,10 @@
 #!/usr/bin/env groovy
 
 pipeline {
-    agent { label 'maven' }
+    agent {
+        // JDK8 - https://github.com/jenkins-infra/plugin-site-api/blob/master/pom.xml#L241-L242
+        label 'maven-8' 
+    }
 
     options {
         disableConcurrentBuilds()
