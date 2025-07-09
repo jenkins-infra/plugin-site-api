@@ -1,4 +1,4 @@
-FROM jetty:9-alpine
+FROM jetty:12.0.1-jdk17-eclipse-temurin
 
 USER root
 
