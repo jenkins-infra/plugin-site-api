@@ -48,7 +48,7 @@ contains new data. If so the application will the reindex the Elasticsearch data
 [source,bash]
 ----
 GITHUB_TOKEN=token from https://github.com/settings/tokens
-DATA_FILE_URL="https://ci.jenkins.io/job/Infra/job/plugin-site-api/job/generate-data/lastSuccessfulBuild/artifact/plugins.json.gzip" mvn jetty:run
+DATA_FILE_URL="https://reports.jenkins.io/plugin-site-api/plugins.json.gzip" mvn jetty:run
 ----
 
 This will launch an embedded Jetty container accessible at `http://localhost:8080`.

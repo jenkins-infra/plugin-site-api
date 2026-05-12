@@ -1,0 +1,69 @@
+#!/usr/bin/env groovy
+
+pipeline {
+    agent {
+        label 'linux-arm64'
+    }
+
+    options {
+        disableConcurrentBuilds()
+        buildDiscarder(logRotator(numToKeepStr: '7'))
+        timestamps()
+        timeout(time: 1, unit: 'HOURS')
+    }
+    triggers {
+        cron('H/10 * * * *')
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Generate') {
+            environment {
+                PLUGIN_DOCUMENTATION_URL = 'https://updates.jenkins.io/current/plugin-documentation-urls.json'
+            }
+            steps {
+                script {
+                    infra.runMaven(['-PgeneratePluginData'], '8')
+                }
+            }
+
+            post {
+                success {
+                    dir('target') {
+                        archiveArtifacts artifacts: 'plugins.json.gzip', fingerprint: true
+                    }
+                }
+            }
+        }
+        stage('Publish') {
+            when {
+                expression {
+                    allOf {
+                        env.BRANCH_IS_PRIMARY
+                        infra.isInfra()
+                    }
+                }
+            }
+            steps {
+                sh '''
+                mkdir -p plugin-site-api
+                cp target/plugins.json.gzip plugin-site-api
+                '''
+                publishReports(['plugin-site-api/plugins.json.gzip'])
+            }
+
+            post {
+                success {
+                    dir('target') {
+                        archiveArtifacts artifacts: 'plugins.json.gzip', fingerprint: true
+                    }
+                }
+            }
+        }
+    }
+}

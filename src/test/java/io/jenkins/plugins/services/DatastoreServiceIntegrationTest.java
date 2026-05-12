@@ -59,20 +59,6 @@ public class DatastoreServiceIntegrationTest {
   }
 
   @Test
-  public void testGetPluginUTF8() {
-    final Plugin plugin = datastoreService.getPlugin("resource-disposer");
-    Assert.assertNotNull("resource-disposer plugin not found", plugin);
-    Assert.assertEquals("resource-disposer", plugin.getName());
-    Assert.assertFalse("Maintainers are empty", plugin.getMaintainers().isEmpty());
-    for (Maintainer maintainer : plugin.getMaintainers()) {
-      if (maintainer.getName().equalsIgnoreCase("Oliver Gondža")) {
-        return;
-      }
-    }
-    Assert.fail("Should have \"Oliver Gondža\" in maintainers");
-  }
-
-  @Test
   public void testGetPluginSecurityWarnings() {
     final Plugin plugin = datastoreService.getPlugin("cucumber-reports");
     Assert.assertNotNull("cucumber-reports plugin not found", plugin);

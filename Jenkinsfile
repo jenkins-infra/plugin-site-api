@@ -1,7 +1,6 @@
 #!/usr/bin/env groovy
 
 def isPullRequest = !!(env.CHANGE_ID)
-def pushToDocker = infra.isTrusted()
 String shortCommit = ''
 String tag = ''
 String dockerImage = ''
@@ -13,7 +12,7 @@ if (!isPullRequest) {
     ])
 }
 
-node('docker&&linux') {
+node('linux-arm64') {
     /* Make sure we're always starting with a fresh workspace */
     deleteDir()
 
@@ -29,68 +28,68 @@ node('docker&&linux') {
           infra.runMaven(['-PgeneratePluginData'], '17', null, true, !infra.isTrusted())
         }
 
-        /*
-         * Running everything within an nginx container to provide the
-         * DATA_FILE_URL necessary for the build and execution of the docker
-         * container
-         */
-        docker.image('nginx:alpine').withRun('-p 80:80 -v $PWD/target:/usr/share/nginx/html') { c ->
-
+        if (!infra.isInfra()) {
             /*
-             * Building our war file inside a Maven container which links to
-             * the nginx container for accessing the DATA_FILE_URL
-             */
-            stage('Build') {
-              withEnv([
-                'DATA_FILE_URL=http://localhost/plugins.json.gzip',
-              ]) {
-                infra.runMaven(['-Dmaven.test.failure.ignore',  'verify'], '8', null, true, !infra.isTrusted())
-              }
+            * Running everything within an nginx container to provide the
+            * DATA_FILE_URL necessary for the build and execution of the docker
+            * container
+            */
+            docker.image('nginx:alpine').withRun('-p 80:80 -v $PWD/target:/usr/share/nginx/html') { c ->
 
-                /** archive all our artifacts for reporting later */
-                junit 'target/surefire-reports/**/*.xml'
-            }
+                /*
+                * Building our war file inside a Maven container which links to
+                * the nginx container for accessing the DATA_FILE_URL
+                */
+                stage('Build') {
+                    withEnv([
+                        'DATA_FILE_URL=http://localhost/plugins.json.gzip',
+                    ]) {
+                        infra.runMaven(['-Dmaven.test.failure.ignore',  'verify'], '8', null, true, !infra.isTrusted())
+                    }
 
-            /*
-             * Build our application container with some extra parameters to
-             * make sure it doesn't leave temporary containers behind on the
-             * agent
-             */
-            def container
-            stage('Containerize') {
-                if (tag.isEmpty()) {
-                  echo "No tag for this commit, creating a docker image with ${shortCommit} version..."
-                  dockerImage = "jenkinsciinfra/plugin-site-api:${env.BUILD_ID}-${shortCommit}"
-                } else {
-                  echo "Tag found for this commit, creating a docker image with ${tag} version..."
-                  dockerImage = "jenkinsciinfra/plugin-site-api:${tag}"
+                    /** archive all our artifacts for reporting later */
+                    junit 'target/surefire-reports/**/*.xml'
                 }
-                container = docker.build(dockerImage, '--no-cache --rm .')
-                if (pushToDocker) {
-                    echo "Pushing container ${dockerImage}"
-                    infra.withDockerCredentials {
-                        container.push()
+
+                /*
+                * Build our application container with some extra parameters to
+                * make sure it doesn't leave temporary containers behind on the
+                * agent
+                */
+                def container
+                stage('Containerize') {
+                    if (tag.isEmpty()) {
+                        echo "No tag for this commit, creating a docker image with ${shortCommit} version..."
+                        dockerImage = "jenkinsciinfra/plugin-site-api:${env.BUILD_ID}-${shortCommit}"
+                    } else {
+                        echo "Tag found for this commit, creating a docker image with ${tag} version..."
+                        dockerImage = "jenkinsciinfra/plugin-site-api:${tag}"
+                    }
+                    container = docker.build(dockerImage, '--no-cache --rm .')
+                }
+
+                /*
+                * Spin up our built container and make sure we can execute API
+                * calls against it before calling it successful
+                */
+                stage('Verify Container') {
+                    container.withRun("--link ${c.id}:nginx -p 8080:8080 -e DATA_FILE_URL=http://nginx/plugins.json.gzip") { api ->
+                        sh 'wget --debug -O /dev/null --retry-connrefused --timeout 120 --tries=15 http://localhost:8080/versions'
                     }
                 }
             }
-
-            /*
-             * Spin up our built container and make sure we can execute API
-             * calls against it before calling it successful
-             */
-            stage('Verify Container') {
-                container.withRun("--link ${c.id}:nginx -p 8080:8080 -e DATA_FILE_URL=http://nginx/plugins.json.gzip") { api ->
-                    sh 'wget --debug -O /dev/null --retry-connrefused --timeout 120 --tries=15 http://localhost:8080/versions'
-                }
+        } else {
+            stage('Maven build') {
+                infra.runMaven(['-Dmaven.test.skip=true',  'package'], '8')
+                stash name: 'build', includes: 'target/*.war'
             }
-
-            stage('Tag container as latest') {
-                if (pushToDocker) {
-                    echo "Tagging ${dockerImage} as latest"
-                    infra.withDockerCredentials {
-                        container.push('latest')
-                    }
-                }
+            stage('Build and publish Docker image') {
+                buildDockerAndPublishImage('plugin-site-api', [
+                  unstash: 'build',
+                  publishToPrivateAzureRegistry: true,
+                  targetplatforms: 'linux/arm64',
+                  automaticSemanticVersioning: false,
+                ])
             }
         }
 
