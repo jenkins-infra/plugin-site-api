@@ -28,7 +28,7 @@ pipeline {
             }
             steps {
                 script {
-                    infra.runMaven(['-PgeneratePluginData'], '8')
+                    infra.runMaven(['-PgeneratePluginData'], '25')
                 }
             }
 
