@@ -25,7 +25,7 @@ node('linux-arm64') {
 
     timestamps {
         stage('Generate Plugin Data') {
-          infra.runMaven(['-PgeneratePluginData'], '17', null, true, !infra.isTrusted())
+          infra.runMaven(['-PgeneratePluginData'], '25', null, true, !infra.isTrusted())
         }
 
         if (!infra.isInfra()) {
@@ -44,7 +44,7 @@ node('linux-arm64') {
                     withEnv([
                         'DATA_FILE_URL=http://localhost/plugins.json.gzip',
                     ]) {
-                        infra.runMaven(['-Dmaven.test.failure.ignore',  'verify'], '8', null, true, !infra.isTrusted())
+                        infra.runMaven(['-Dmaven.test.failure.ignore',  'verify'], '25', null, true, !infra.isTrusted())
                     }
 
                     /** archive all our artifacts for reporting later */
@@ -80,7 +80,7 @@ node('linux-arm64') {
             }
         } else {
             stage('Maven build') {
-                infra.runMaven(['-Dmaven.test.skip=true',  'package'], '8')
+                infra.runMaven(['-Dmaven.test.skip=true',  'package'], '25')
                 stash name: 'build', includes: 'target/*.war'
             }
             stage('Build and publish Docker image') {
